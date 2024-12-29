@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dolarômetro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      background: linear-gradient(to bottom, #006400, #32CD32, #FFD700);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      text-align: center;
+      flex: 1;
+    }
+    img {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 70%;
+      height: auto;
+      border-radius: 15px;
+    }
+    h1 {
+      margin: 20px 0;
+      color: #333;
+    }
+    form {
+      text-align: left;
+      margin-top: 20px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      color: #333;
+    }
+    input[type="text"],
+    input[type="email"],
+    select,
+    input[type="tel"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #007BFF;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .quote {
+      margin: 20px 0;
+      font-size: 1.2em;
+      color: #333;
+      text-align: center;
+    }
+    footer {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      font-size: 0.9em;
+      text-align: center;
+    }
+    footer a {
+      color: #FFD700;
+      text-decoration: none;
+    }
+    .chart-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 400px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .chart-container canvas {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="image.jpg" alt="Imagem Centralizada">
+    <h1>Dolarômetro</h1>
+    <p class="quote">Cotação do Dólar: <span id="dollar-quote">Carregando...</span></p>
+    
+    <form id="registrationForm">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" placeholder="exemplo@dominio.com" required>
+
+      <label for="phone">Celular:</label>
+      <input type="tel" id="phone" name="phone" placeholder="Digite seu telefone" required>
+
+      <div class="checkbox-container">
+        <input type="checkbox" id="terms" name="terms" required>
+        <label for="terms">Ao continuar, estou ciente da Política de Privacidade do Dolarômetro e dos Termos e Condições de Uso do Site</label>
+      </div>
+
+      <button type="submit">Criar Cadastro</button>
+    </form>
+  </div>
+
+  <footer>
+    <p>A cotação do dólar exibida neste site é obtida de fontes públicas (<a href="https://exchangerate-api.com" target="_blank">ExchangeRate API</a>). Não nos responsabilizamos pela precisão ou atualidade desta informação.</p>
+  </footer>
+
+  <div class="chart-container">
+    <canvas id="dollarChart"></canvas>
+  </div>
+
+  <script>
+    async function fetchDollarQuote() {
+      try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await response.json();
+        const rate = data.rates.BRL;
+        document.getElementById('dollar-quote').innerText = `R$ ${rate.toFixed(2)}`;
+      } catch (error) {
+        document.getElementById('dollar-quote').innerText = 'Erro ao carregar';
+        console.error('Erro ao buscar cotação:', error);
+      }
+    }
+
+    fetchDollarQuote();
+
+    function fetchDollarHistory() {
+      const labels = ['2018', '2019', '2020', '2021', '2022', '2023'];
+      const data = [3.74, 3.87, 4.02, 5.39, 5.16, 5.25]; // Dados estáticos simulados para 6 anos
+
+      createChart(labels, data);
+    }
+
+    function createChart(labels, data) {
+      const ctx = document.getElementById('dollarChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Cotação do Dólar (BRL)',
+            data,
+            borderColor: 'rgba(0, 123, 255, 1)',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            borderWidth: 2,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Ano' } },
+            y: { title: { display: true, text: 'Cotação (BRL)' } }
+          }
+        }
+      });
+    }
+    
+
+    fetchDollarHistory();
+
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const phone = document.getElementById('phone').value;
+      alert(`Cadastro criado com sucesso! Telefone informado: ${phone}`);
+    });
+  </script>
+</body>
+</html>
